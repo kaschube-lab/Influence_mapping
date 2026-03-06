@@ -35,7 +35,7 @@ statsmodels==0.14.4
 torch==2.6.0
 tqdm==4.67.1
 ```
-
+No non-standard hardware required.
 ---
 
 # Installation
@@ -61,6 +61,8 @@ A demonstration of the core simulation is provided in:
 ```
 ./demos/fig4.ipynb
 ```
+Parameter sets used for the model provided in `./Model/model_params.py`
+
 Run the notebook using **Jupyter Notebook** or **JupyterLab**.
 
 The demo reproduces the main simulation results shown in **Figure 4** of the paper.
