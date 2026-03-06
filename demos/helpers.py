@@ -502,18 +502,36 @@ def fit_infl_ncorr_slopes():
 	return slopes.reshape(20, 25), res['slope_e_ls'], res['slope_i_ls'], pvals_boot.reshape(20, 25)
 
 
+def influence_4n(gammaI,gammaE):
+	w_EE = 1.1
+	w_II = 2.5
+	w_EI = 2.89
+	w_IE = 2.89
+	sigmaE=10
+	
 
+	delta = 1
+	rI = np.linspace(0.07,1 , 30)
+	rE= np.linspace(0, 1, 30)
 
-def load_4n_2d():
-	if 'dldevel' in os.path.expanduser("~"):
-		save_path = '/scratch/dldevel/kong/Downloads/kaschube-lab/Influence_mapping/analysis_data/figs/'
-	else:
-		save_path = '/Volumes/DEYUE/Downloads/kaschube-lab/Influence_mapping/analysis_data/figs/final/'
+	R_I, R_E = np.meshgrid(rI, rE)
+	R_E, R_I = np.meshgrid(rE, rI)
+	a1=1/np.sqrt(2*np.pi*(sigmaE)**2)
+	b1=1/np.sqrt(2*np.pi*(sigmaE*1.5)**2)
+	r=b1/a1
+	b=1/np.sqrt(2*np.pi)
+	a=b/r
 
-	plot_far = np.load(save_path + 'NC1.npy',allow_pickle=True)
-	plot_near = np.load(save_path + 'NC2.npy',allow_pickle=True)
+	numerator1 = delta * (1+(1+gammaI)*R_I*b*w_II )
+	denominator1 = 2*((1 - (1+gammaE)*R_E*a*w_EE)*(1+(1+gammaI)*R_I*b*w_II) +(1+gammaI)*(1+gammaE)* R_E * R_I * a*b*w_EI * w_IE)
+	numerator2 = delta * (1+(1-gammaI)*R_I*b*w_II )
+	denominator2 = 2*((1 - (1-gammaE)*R_E*a*w_EE)*(1+(1-gammaI)*R_I*b*w_II) +(1-gammaI)*(1-gammaE)* R_E * R_I *a*b*w_EI * w_IE)
+	primo_termine=numerator1/denominator1
+	secondo_termine=numerator2/denominator2
+	somma=primo_termine-secondo_termine
 
-	return plot_far,plot_near
+	return somma
+
 
 def load_4n_eg():
 	if 'dldevel' in os.path.expanduser("~"):
