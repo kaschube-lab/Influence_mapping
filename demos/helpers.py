@@ -543,3 +543,102 @@ def load_4n_eg():
 	eg_high = np.load(save_path + 'NC4.npy')
 
 	return eg_low, eg_high
+
+############################
+###  Figure 5 (I-E influence)
+############################
+
+def compute_ie_influence_gain(keyword, gains=(1.2, 0.6), max_dist=24):
+	"""
+	Net I->E influence as a function of distance, for a range of gains.
+
+	A single inhibitory unit is perturbed and the response of the excitatory
+	population is read out. The influence is expressed per unit of input
+	current (i.e. divided by the gain), so that curves obtained with
+	different gains are directly comparable.
+
+	Parameters:
+	- keyword: parameter set ('eg_mh' for LELI, 'eg_cross_pop' for the
+	  cross-dominant suppressive regime)
+	- gains: iterable of gains (rho) to simulate
+	- max_dist: largest distance (in units of neurons) to return
+	Returns:
+	- dist: distances from the perturbed unit, in units of sigma_E
+	- infl_dict: {gain: influence on the E population vs distance}
+	"""
+	infl_dict = {}
+	for gain in gains:
+		params = default_params(keyword, unit_ff=True)
+		params.update({'slope': gain})
+		sigma = params['sigma']
+		N = params['N']
+		model = generate_model(params, linear=True)
+		# perturb the inhibitory unit at location 0: index = distance
+		infl = model.get_influence(loc=0, pop='I').cpu().detach().numpy()
+		infl_dict[gain] = infl[:N][:max_dist + 1] / gain
+	dist = np.arange(max_dist + 1) / sigma
+	return dist, infl_dict
+
+
+def compute_ie_params_scan(gains=(0.6, 1.2), dw=0.05, wii=2.5, sigma=10, inh_a=1.5):
+	"""
+	Average net I->E influence across a range of connection strengths.
+
+	The E->E influence is used to flag the parameters that are consistent with
+	the experimental data (same criteria as in Figure 4e): net suppression on
+	average and locally, a stable network, and a suppression peak away from the
+	perturbed unit.
+
+	Parameters:
+	- gains: iterable of gains (rho) to scan
+	- dw: step of the connection-strength grid
+	Returns:
+	- Wee, Wei: the grid of w_EE and sqrt(w_EI w_IE) values
+	- res: {gain: dict with 'avg_ie_infl', 'stability', 'plausible'}
+	"""
+	Wee = np.arange(dw, 2.5 + dw, dw)
+	Wei = np.arange(dw, 3.1 + dw, dw)
+	avg_range = int(1.6 * sigma * inh_a)
+	local_range = math.ceil(avg_range / 4)
+
+	res = {gain: {'avg_ie_infl': np.full((len(Wei), len(Wee)), np.nan, dtype=np.float32),
+				  'stability': np.zeros((len(Wei), len(Wee)), dtype=np.float32),
+				  'plausible': np.zeros((len(Wei), len(Wee)), dtype=bool)}
+		   for gain in gains}
+
+	for i, wei in enumerate(Wei):
+		for j, wee in enumerate(Wee):
+			customized_params = {
+				'wee': wee,
+				'wei': wei,
+				'wie': wei,
+				'wii': wii,
+				'sigma': sigma,
+				'sigma_ie': sigma,
+				'sigma_ei': sigma * inh_a,
+				'sigma_ii': sigma * inh_a
+			}
+			params = default_params('custmized', customized_params, unit_ff=True)
+			for gain in gains:
+				params.update({'slope': gain})
+				model = generate_model(params, linear=True)
+				max_eig = model.get_max_eigenvalue()
+				res[gain]['stability'][i, j] = max_eig
+				if max_eig >= 1:
+					continue
+				# I->E influence
+				dist, infl_e_i, _ = model.get_influence_distance(loc=20, pop='I')
+				dist = dist.cpu().detach().numpy()
+				infl_e_i = infl_e_i.cpu().detach().numpy()
+				res[gain]['avg_ie_infl'][i, j] = infl_e_i[dist < avg_range].mean()
+				# E->E influence: experimental consistency (cf. Figure 4e).
+				# Expressed per unit of input current, so that the criteria are
+				# the ones of Figure 4e independently of the gain.
+				_, infl_e_e, _ = model.get_influence_distance(loc=20, pop='E')
+				infl_e_e = infl_e_e.cpu().detach().numpy().copy()
+				infl_e_e[0] = (infl_e_e[0] + 1) / gain - 1  # perturbed unit
+				infl_e_e[1:] = infl_e_e[1:] / gain
+				res[gain]['plausible'][i, j] = ((infl_e_e[dist < avg_range].mean() < 0)
+												and (infl_e_e[dist < local_range].mean() < 0)
+												and (dist[np.argmin(infl_e_e)] > 1))
+	return Wee, Wei, res
