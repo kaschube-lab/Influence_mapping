@@ -1,7 +1,9 @@
 # Influence Mapping
 
-Code for the analysis and modeling presented in the preprint:
+Code for the analysis and modeling presented in the paper (under review in NatComm):
+**Strong excitatory-inhibitory connectivity enables dynamic functional interactions in modular cortex**
 
+Also see this preprint:
 **Principles of cortical interactions in modular recurrent networks**  
 https://www.biorxiv.org/content/10.64898/2025.12.19.695176v2
 
@@ -9,7 +11,7 @@ https://www.biorxiv.org/content/10.64898/2025.12.19.695176v2
 
 # Requirements
 
-Required Python packages:
+No non-standard hardware required. Required Python packages:
 ```
 dataset==1.6.2
 h5py==3.14.0
@@ -22,7 +24,7 @@ statsmodels==0.14.4
 torch==2.6.0
 tqdm==4.67.1
 ```
-No non-standard hardware required.
+
 ---
 
 # Installation
