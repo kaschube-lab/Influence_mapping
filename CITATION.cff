@@ -1,0 +1,19 @@
+     cff-version: 1.2.0
+     title: "Code for: [Paper title]"
+     message: "If you use this code, please cite it as below."
+     type: software
+     authors:
+       - family-names: "Kong"
+         given-names: "Deyue"
+         orcid: "https://orcid.org/0000-0002-3046-2121"
+       - family-names: "Barreto"
+         given-names: "Joe"
+       - family-names: "Butti"
+         given-names: "Lorenzo"
+       - family-names: "Kaschube"
+         given-names: "Matthias"
+       - family-names: "Scholl"
+         given-names: "Benjamin"
+     repository-code: "https://github.com/kaschube-lab/Influence_mapping"
+     license: MIT
+     version: 1.0.0
