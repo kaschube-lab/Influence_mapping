@@ -1,11 +1,10 @@
      cff-version: 1.2.0
-     title: "Code for: [Paper title]"
+     title: "Code for: Strong excitatory-inhibitory connectivity enables dynamic functional interactions in modular cortex"
      message: "If you use this code, please cite it as below."
      type: software
      authors:
        - family-names: "Kong"
          given-names: "Deyue"
-         orcid: "https://orcid.org/0000-0002-3046-2121"
        - family-names: "Barreto"
          given-names: "Joe"
        - family-names: "Butti"

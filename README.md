@@ -69,6 +69,6 @@ The code was tested on:
 Expected runtime: **<5 minutes on an 8-core laptop**.
 
 
-
+*Claude was used to help document and refactor the code.
 
 
